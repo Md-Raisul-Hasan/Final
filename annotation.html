@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Annotation and Marking App</title>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <link rel="stylesheet" href="main.css">
+
+    <script>
+        // Create a new XMLHttpRequest object
+        var xhr = new XMLHttpRequest();
+
+        // Configure the request
+        xhr.open('GET', 'fetch_marked_text.php', true);
+
+        // Set up the callback function
+        xhr.onload = function() {
+    if (xhr.status >= 200 && xhr.status < 400) {
+        // Success! Populate the div with the fetched marked text as HTML
+        document.getElementById('textInput').innerHTML = xhr.responseText;
+    } else {
+        // Handle the error
+        console.error('Error fetching marked text:', xhr.statusText);
+    }
+};
+
+
+        // Handle any errors that occur while making the request
+        xhr.onerror = function() {
+            console.error('Request failed');
+        };
+
+        // Send the request
+        xhr.send();
+    </script>
+</head>
+
+<body>
+    <div class="header_bar">
+        <img src="images/scriibi.png" alt="Logo">
+    </div>
+    <div class="container">
+        <div class="text-box-area">
+            <form id="text-box-area" action="submit_process.php" method="post">
+                <input type="hidden" id="selectedText" name="selectedText">
+
+                <div class="commpopup" style="display: none;">
+                    <br>
+                    <label> Annotation Comment: </label>
+                    <textarea id = "commentbox"  name="user_comment" placeholder="Add your comment here..."></textarea><br>
+                </div>
+
+                <div id="textInput"></div>
+                 <textarea style="display: none;" id="annotatedtext" name="annotatedtext"></textarea>
+                <br>
+                <label>Final Level mark: </label><input name="Level" type="text" required>
+                <label> Student ID: </label><input name="studid" type="text" required>
+
+                <div class="submit">
+                    <button class="G_button" type="submit" onclick="updateTextArea()">Submit Annotation</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="subSkillTooltip" style="display: none;">
+            <button data-subskill="Propositional Phrase" style="background-color: #ffb6c17e;" onclick="selectSubSkill('Propositional Phrase')">PP</button>
+            <button data-subskill="Transition" style="background-color: #ffd90086;" onclick="selectSubSkill('Transition')">TR</button>
+            <button data-subskill="Proper Noun" style="background-color: #add8e685;" onclick="selectSubSkill('Proper Noun')">PN</button>
+            <button data-subskill="Sub Conjunction" style="background-color: #ff634779;" onclick="selectSubSkill('Sub Conjunction')">SC</button>
+            <button data-subskill="Pronoun" style="background-color: #98fb9888;" onclick="selectSubSkill('Pronoun')">PR</button>
+            <button class="commentInput"  style="background-color: #ffffff;" onclick="addComment()">💬</button>
+        </div>
+
+        <div class="annotation-area">
+            <div class="zoom-controls">
+                <button class="zc" onclick="zoomOut()">-</button>
+                <span id="zoom-percentage">100%</span>
+                <button class="zc" onclick="zoomIn()">+</button>
+            </div>
+            <br>
+            <div class="functions">
+                <div class="tools">
+                    <div class="button-container">
+                        <button class = "tbutton" onclick="confirmGrade()"><img src="images/highlighter.png" alt="Annotate"></button>
+                        <button class = "tbutton" onclick="clearSubSkillFormatting()"><img src="images/eraser.png" alt="Eraser"></button>
+                        <button class = "tbutton" onclick="clearAllSubSkillFormatting()"><img src="images/bin.png" alt="Eraser"></button>
+                        <button class = "tbutton" onclick="showModal()"><img src="images/checklist.png" alt="SMC"></button>
+                        <button class = "tbutton" onclick="toggleCommentPopup()"><img src="images/check-mark.png" alt="save commnet"></button>
+                    </div>
+                    <br>
+
+                    <div id="grading" style="display:none;">
+                        <select id="gradeValue" style="display:none;">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </div>
+                </div>
+
+            <!-- Marking Criteria Modal -->
+            <div id="markingCriteriaModal" class="modal">
+                <!-- Modal content -->
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <div id = "criteria_header">
+                        <h1 id = "MarkingCriteria">Marking Criteria</h1><br>
+                    </div>
+                    <h2 id="mainskill">Main Skill</h2>
+                    <h2>Sentence Beginnings</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th >Level</th>
+                                <th id = "des">Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Level 2</strong></td>
+                                <td >Some variation in sentence beginnings including proper nouns, pronouns, prepositional phrases (On, At), time and sequence transitions (Later, Then), subordinating conjunctions (While, After, Because).</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Level 3</strong></td>
+                                <td >Sentence beginnings are varied. Experimenting with different beginnings to make writing interesting, including prepositional phrases, a range of transitions, proper nouns, verbs, adjectives and subordinating conjunctions.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Level 4</strong></td>
+                                <td>Thoughtful, varied sentence beginnings signal to the reader how the text is developing. Includes prepositional phrases, a range of transitions, proper nouns, verbs, adjectives and subordinating conjunctions..</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Level 5</strong></td>
+                                <td>A range of thoughtful and interesting sentence beginnings gives prominence to the message, links ideas smoothly and allows for prediction of how the text will unfold.(Highest level for this skill)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="skills-dropdown">
+                <button class="dropbtn">Choose A Skill:</button>
+                <div class="dropdown-content">
+                    <a>Sentence Type & Structure</a>
+                    <a>Cohesion</a>
+                    <a>Sentence Flow & Fluency</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script src="main.js"></script>
+</body>
+
+</html>
